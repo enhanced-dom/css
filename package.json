@@ -1,0 +1,29 @@
+{
+  "name": "@enhanced-dom/css",
+  "version": "0.0.1",
+  "description": "Plumbing for interaction with css",
+  "keywords": [],
+  "repository": "https://github.com/enhanced-dom/css.git",
+  "license": "MIT",
+  "author": "CD9B4A105290E17E0948E021DF4105107C88693C59C0B891CCC08366C51AEA990902A6A156AC87D88A2FC41422A5E1C3C4071F251F19441C4516000EC25F87DF",
+  "main": "index.js",
+  "scripts": {
+    "prebuild": "rimraf dist/*",
+    "build": "tsc -p ./tsconfig.json",
+    "postbuild": "copyfiles package.json LICENSE.md README.md dist",
+    "package": "cd dist && npm pack",
+    "lint": "eslint src/** --fix --config eslint.config.js"
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+    "@enhanced-dom/lint": "^0.0.3",
+    "copyfiles": "^2.4.1",
+    "rimraf": "^3.0.2",
+    "typescript": "^4.2.2"
+  },
+  "engines": {
+    "node": ">=14.17.0",
+    "npm": ">=8.0.0"
+  }
+}
