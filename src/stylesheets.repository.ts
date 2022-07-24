@@ -1,3 +1,5 @@
+import { STYLESHEET_ATTRIBUTE_NAME } from './constants'
+
 export class UnknownStylesheetEvent<T extends { emitter: { type: string; id?: string } }> extends CustomEvent<
   { stylesheetName: string } & T
 > {
@@ -27,12 +29,10 @@ export class StylesheetsRepository {
 
   public getStylesheet(stylesheetName: string) {
     const stylesheet = Array.from(this._document.styleSheets).find(
-      (s) => (s.title ?? (s.ownerNode as Element).getAttribute('title')) === stylesheetName,
+      (s) => (s.ownerNode as Element).getAttribute(STYLESHEET_ATTRIBUTE_NAME) === stylesheetName,
     )
     if (!stylesheet) {
-      this._document.dispatchEvent(
-        new UnknownStylesheetEvent(stylesheetName, { emitter: this._emitter }),
-      )
+      this._document.dispatchEvent(new UnknownStylesheetEvent(stylesheetName, { emitter: this._emitter }))
     }
     return stylesheet
   }
@@ -54,9 +54,7 @@ export class StylesheetsRepository {
     }
     const rule = Array.from(stylesheet.cssRules).find((r: CSSStyleRule) => r.selectorText.endsWith(selector)) as CSSStyleRule
     if (!rule) {
-      this._document.dispatchEvent(
-        new UnknownCssRuleEvent(stylesheetName, selector, { emitter: this._emitter }),
-      )
+      this._document.dispatchEvent(new UnknownCssRuleEvent(stylesheetName, selector, { emitter: this._emitter }))
     }
     return rule
   }

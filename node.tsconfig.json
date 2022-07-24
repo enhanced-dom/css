@@ -1,22 +1,20 @@
 {
   "compilerOptions": {
     "moduleResolution": "node",
-    "module": "esnext",
+    "module": "CommonJS",
     "target": "es2018",
     "baseUrl": "./",
     "declaration": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
-    "outDir": "dist",
+    "outDir": "dist/cjs",
     "preserveConstEnums" : true,
     "sourceMap": true,
     "sourceRoot": "./",
     "inlineSources": true
   },
   "include": [
-    "src/**/*.ts",
-  ],
-  "exclude": [
+    "src/constants.ts",
     "src/cjs.ts"
   ]
 }

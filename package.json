@@ -1,6 +1,6 @@
 {
   "name": "@enhanced-dom/css",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Plumbing for interaction with css",
   "keywords": [],
   "repository": "https://github.com/enhanced-dom/css.git",
@@ -9,17 +9,17 @@
   "main": "index.js",
   "scripts": {
     "prebuild": "rimraf dist/*",
-    "build": "tsc -p ./tsconfig.json",
-    "postbuild": "copyfiles package.json LICENSE.md README.md dist",
+    "build": "tsc -p ./tsconfig.json && tsc -p ./node.tsconfig.json",
+    "postbuild": "copyfiles LICENSE.md README.md dist && @enhanced-dom-copy-packagejson --folder dist/cjs --file node.package.json && @enhanced-dom-copy-packagejson",
     "package": "cd dist && npm pack",
+    "postinstall": "@enhanced-dom-husky",
     "lint": "eslint src/** --fix --config eslint.config.js"
   },
   "dependencies": {
   },
   "devDependencies": {
-    "@enhanced-dom/lint": "^0.0.3",
-    "copyfiles": "^2.4.1",
-    "rimraf": "^3.0.2",
+    "@enhanced-dom/build": "^0.0.2",
+    "@enhanced-dom/lint": "^0.0.7",
     "typescript": "^4.2.2"
   },
   "engines": {
