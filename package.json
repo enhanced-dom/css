@@ -1,6 +1,6 @@
 {
   "name": "@enhanced-dom/css",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Plumbing for interaction with css",
   "keywords": [],
   "repository": "https://github.com/enhanced-dom/css.git",
@@ -15,12 +15,11 @@
     "postinstall": "@enhanced-dom-husky",
     "lint": "eslint src/** --fix --config eslint.config.js"
   },
-  "dependencies": {
-  },
+  "dependencies": {},
   "devDependencies": {
     "@enhanced-dom/build": "^0.0.2",
     "@enhanced-dom/lint": "^0.0.7",
-    "typescript": "^4.2.2"
+    "typescript": "^4.9.4"
   },
   "engines": {
     "node": ">=14.17.0",

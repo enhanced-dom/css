@@ -1,5 +1,16 @@
 import { STYLESHEET_ATTRIBUTE_NAME } from './constants'
 
+export interface IStylesheetsRepository {
+  getStylesheet(stylesheetName: string, strict?: boolean): CSSStyleSheet | null
+  getOrCreateStylesheet(stylesheetName: string): CSSStyleSheet
+  createOrUpdateStylesheet(stylesheetName: string, contents: string): void
+  getRule(stylesheetName: string, selector: string, strict?: boolean): CSSStyleRule | null
+  getOrCreateRule(stylesheetName: string, selector: string): CSSStyleRule
+  createOrUpdateRule(stylesheetName: string, selector: string, contents: string): void
+  setProperty(stylesheetName: string, selector: string, variableName: string, value: string): void
+  getProperty(stylesheetName: string, selector: string, variableName: string, strict?: boolean): string
+}
+
 export class UnknownStylesheetEvent<T extends { emitter: { type: string; id?: string } }> extends CustomEvent<
   { stylesheetName: string } & T
 > {
@@ -18,60 +29,103 @@ export class UnknownCssRuleEvent<T extends { emitter: { type: string; id?: strin
   }
 }
 
-export class StylesheetsRepository {
+type DomBoundCSSStyleSheet = CSSStyleSheet & { ownerNode: Element }
+
+export class StylesheetsRepository implements IStylesheetsRepository {
   static eventEmitterType = '@enhanced-dom/stylesheetsRepository'
   private _document: ShadowRoot | Document
-  private _emitter: { type: string; id?: string }
-  constructor(document: ShadowRoot | Document, emitter: { type: string; id?: string } = { type: StylesheetsRepository.eventEmitterType }) {
+  private _name: string
+  constructor(document: ShadowRoot | Document, name = 'Unknown') {
     this._document = document
-    this._emitter = emitter
+    this._name = name
   }
 
-  public getStylesheet(stylesheetName: string) {
+  public getStylesheet(stylesheetName: string, strict = true): DomBoundCSSStyleSheet {
     const stylesheet = Array.from(this._document.styleSheets).find(
       (s) => (s.ownerNode as Element).getAttribute(STYLESHEET_ATTRIBUTE_NAME) === stylesheetName,
     )
-    if (!stylesheet) {
-      this._document.dispatchEvent(new UnknownStylesheetEvent(stylesheetName, { emitter: this._emitter }))
+
+    if (!stylesheet && strict) {
+      this._document.dispatchEvent(
+        new UnknownStylesheetEvent(stylesheetName, { emitter: { type: StylesheetsRepository.eventEmitterType, id: this._name } }),
+      )
     }
-    return stylesheet
+    return stylesheet as DomBoundCSSStyleSheet
   }
 
-  private _refreshStylesheet(stylesheetName: string) {
-    const stylesheet = this.getStylesheet(stylesheetName)
-    if (stylesheet) {
-      const newCss = Array.from(stylesheet.cssRules)
-        .map((rule) => rule.cssText)
-        .join('')
-      ;(stylesheet.ownerNode as Element).innerHTML = newCss
+  public getOrCreateStylesheet(stylesheetName: string) {
+    const stylesheet = this.getStylesheet(stylesheetName, false)
+    const styleSheetNode = stylesheet?.ownerNode as Element
+    if (!styleSheetNode) {
+      const stylesheetNode = document.createElement('style')
+      stylesheetNode.setAttribute(STYLESHEET_ATTRIBUTE_NAME, stylesheetName)
+      const head = this._document.querySelector('head')
+      head.appendChild(stylesheetNode)
     }
+    return this.getStylesheet(stylesheetName)
   }
 
-  public getRule(stylesheetName: string, selector: string): CSSStyleRule {
-    const stylesheet = this.getStylesheet(stylesheetName)
+  public createOrUpdateStylesheet(stylesheetName: string, contents: string) {
+    const stylesheet = this.getOrCreateStylesheet(stylesheetName)
+    ;(stylesheet.ownerNode as Element).innerHTML = contents
+  }
+
+  private _serializeStylesheet(stylesheet: CSSStyleSheet) {
+    return Array.from(stylesheet.cssRules)
+      .map((rule) => rule.cssText)
+      .join('')
+  }
+
+  private _refreshStylesheet(stylesheet: DomBoundCSSStyleSheet) {
+    const newCss = this._serializeStylesheet(stylesheet)
+    stylesheet.ownerNode.innerHTML = newCss
+  }
+
+  public getRule(stylesheetName: string, selector: string, strict = true): CSSStyleRule {
+    const stylesheet = this.getStylesheet(stylesheetName, strict)
     if (!stylesheet) {
       return undefined
     }
-    const rule = Array.from(stylesheet.cssRules).find((r: CSSStyleRule) => r.selectorText.endsWith(selector)) as CSSStyleRule
-    if (!rule) {
-      this._document.dispatchEvent(new UnknownCssRuleEvent(stylesheetName, selector, { emitter: this._emitter }))
+    const rule = Array.from(stylesheet.cssRules)
+      .filter((r) => r instanceof CSSStyleRule)
+      .find((r: CSSStyleRule) => r.selectorText.endsWith(selector)) as CSSStyleRule
+    if (!rule && strict) {
+      this._document.dispatchEvent(
+        new UnknownCssRuleEvent(stylesheetName, selector, { emitter: { type: StylesheetsRepository.eventEmitterType, id: this._name } }),
+      )
     }
     return rule
   }
 
-  setProperty(stylesheetName: string, selector: string, variableName: string, value: string) {
-    const rule = this.getRule(stylesheetName, selector)
-    if (rule) {
-      rule.style.setProperty(variableName, value)
-      this._refreshStylesheet(stylesheetName)
+  public getOrCreateRule(stylesheetName: string, selector: string): CSSStyleRule {
+    let rule = this.getRule(stylesheetName, selector, false)
+    if (!rule) {
+      let stylesheet = this.getOrCreateStylesheet(stylesheetName)
+      const newContents = `${this._serializeStylesheet(stylesheet)} .${selector}{}`
+      this.createOrUpdateStylesheet(stylesheetName, newContents)
+      stylesheet = this.getOrCreateStylesheet(stylesheetName)
+      rule = Array.from(stylesheet.cssRules)[stylesheet.cssRules.length - 1] as CSSStyleRule
     }
+    return rule
   }
 
-  getProperty(stylesheetName: string, selector: string, variableName: string) {
-    const rule = this.getRule(stylesheetName, selector)
-    if (rule) {
-      return rule.style.getPropertyValue(variableName)
+  public createOrUpdateRule(stylesheetName: string, selector: string, contents: string) {
+    const rule = this.getOrCreateRule(stylesheetName, selector)
+    rule.cssText = contents
+    this._refreshStylesheet(rule.parentStyleSheet as DomBoundCSSStyleSheet)
+  }
+
+  public setProperty(stylesheetName: string, selector: string, variableName: string, value: string) {
+    const rule = this.getOrCreateRule(stylesheetName, selector)
+    rule.style.setProperty(variableName, value)
+    this._refreshStylesheet(rule.parentStyleSheet as DomBoundCSSStyleSheet)
+  }
+
+  public getProperty(stylesheetName: string, selector: string, variableName: string, strict = true) {
+    const rule = this.getRule(stylesheetName, selector, strict)
+    if (!rule) {
+      return undefined
     }
-    return undefined
+    return rule.style.getPropertyValue(variableName)
   }
 }
