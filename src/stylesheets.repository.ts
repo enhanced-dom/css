@@ -29,7 +29,7 @@ export class UnknownCssRuleEvent<T extends { emitter: { type: string; id?: strin
   }
 }
 
-type DomBoundCSSStyleSheet = CSSStyleSheet & { ownerNode: Element }
+type DomBoundCSSStyleSheetType = CSSStyleSheet & { ownerNode: Element }
 
 export class StylesheetsRepository implements IStylesheetsRepository {
   static eventEmitterType = '@enhanced-dom/stylesheetsRepository'
@@ -40,7 +40,7 @@ export class StylesheetsRepository implements IStylesheetsRepository {
     this._name = name
   }
 
-  public getStylesheet(stylesheetName: string, strict = true): DomBoundCSSStyleSheet {
+  public getStylesheet(stylesheetName: string, strict = true): DomBoundCSSStyleSheetType {
     const stylesheet = Array.from(this._document.styleSheets).find(
       (s) => (s.ownerNode as Element).getAttribute(STYLESHEET_ATTRIBUTE_NAME) === stylesheetName,
     )
@@ -50,7 +50,7 @@ export class StylesheetsRepository implements IStylesheetsRepository {
         new UnknownStylesheetEvent(stylesheetName, { emitter: { type: StylesheetsRepository.eventEmitterType, id: this._name } }),
       )
     }
-    return stylesheet as DomBoundCSSStyleSheet
+    return stylesheet as DomBoundCSSStyleSheetType
   }
 
   public getOrCreateStylesheet(stylesheetName: string) {
@@ -76,7 +76,7 @@ export class StylesheetsRepository implements IStylesheetsRepository {
       .join('')
   }
 
-  private _refreshStylesheet(stylesheet: DomBoundCSSStyleSheet) {
+  private _refreshStylesheet(stylesheet: DomBoundCSSStyleSheetType) {
     const newCss = this._serializeStylesheet(stylesheet)
     stylesheet.ownerNode.innerHTML = newCss
   }
@@ -112,13 +112,13 @@ export class StylesheetsRepository implements IStylesheetsRepository {
   public createOrUpdateRule(stylesheetName: string, selector: string, contents: string) {
     const rule = this.getOrCreateRule(stylesheetName, selector)
     rule.cssText = contents
-    this._refreshStylesheet(rule.parentStyleSheet as DomBoundCSSStyleSheet)
+    this._refreshStylesheet(rule.parentStyleSheet as DomBoundCSSStyleSheetType)
   }
 
   public setProperty(stylesheetName: string, selector: string, variableName: string, value: string) {
     const rule = this.getOrCreateRule(stylesheetName, selector)
     rule.style.setProperty(variableName, value)
-    this._refreshStylesheet(rule.parentStyleSheet as DomBoundCSSStyleSheet)
+    this._refreshStylesheet(rule.parentStyleSheet as DomBoundCSSStyleSheetType)
   }
 
   public getProperty(stylesheetName: string, selector: string, variableName: string, strict = true) {

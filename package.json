@@ -1,6 +1,6 @@
 {
   "name": "@enhanced-dom/css",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "description": "Plumbing for interaction with css",
   "keywords": [],
   "repository": "https://github.com/enhanced-dom/css.git",
@@ -17,12 +17,12 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "@enhanced-dom/build": "^0.0.2",
-    "@enhanced-dom/lint": "^0.0.7",
-    "typescript": "^4.9.4"
+    "@enhanced-dom/build": "^0.1.0",
+    "@enhanced-dom/lint": "^0.1.1",
+    "typescript": "^5.3.3"
   },
   "engines": {
-    "node": ">=14.17.0",
-    "npm": ">=8.0.0"
+    "node": ">=18",
+    "npm": ">=10"
   }
 }
