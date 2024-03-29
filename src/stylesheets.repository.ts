@@ -101,7 +101,7 @@ export class StylesheetsRepository implements IStylesheetsRepository {
     let rule = this.getRule(stylesheetName, selector, false)
     if (!rule) {
       let stylesheet = this.getOrCreateStylesheet(stylesheetName)
-      const newContents = `${this._serializeStylesheet(stylesheet)} .${selector}{}`
+      const newContents = `${this._serializeStylesheet(stylesheet)} ${selector}{}`
       this.createOrUpdateStylesheet(stylesheetName, newContents)
       stylesheet = this.getOrCreateStylesheet(stylesheetName)
       rule = Array.from(stylesheet.cssRules)[stylesheet.cssRules.length - 1] as CSSStyleRule
