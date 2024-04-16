@@ -55,12 +55,36 @@ export class StylesheetsRepository implements IStylesheetsRepository {
 
   public getOrCreateStylesheet(stylesheetName: string) {
     const stylesheet = this.getStylesheet(stylesheetName, false)
-    const styleSheetNode = stylesheet?.ownerNode as Element
-    if (!styleSheetNode) {
-      const stylesheetNode = document.createElement('style')
+    let stylesheetNode = stylesheet?.ownerNode as Element
+    if (!stylesheetNode) {
+      stylesheetNode = document.createElement('style')
       stylesheetNode.setAttribute(STYLESHEET_ATTRIBUTE_NAME, stylesheetName)
+      // try to append at the end of <head> node
       const head = this._document.querySelector('head')
-      head.appendChild(stylesheetNode)
+      if (head) {
+        head.appendChild(stylesheetNode)
+      } else {
+        // <head> does not exist
+        const documentNodes = Array.from(this._document.childNodes)
+        // find first <style> node which is a direct descendent of the topmost level
+        const firstStylesheet = documentNodes.find((n: HTMLElement) => n.nodeType === n.ELEMENT_NODE && n.tagName.toLowerCase() === 'style')
+        if (firstStylesheet) {
+          const subsequentNode = documentNodes.find(
+            (n: HTMLElement) => n.nodeType !== n.ELEMENT_NODE || n.tagName.toLowerCase() !== 'style',
+            documentNodes.indexOf(firstStylesheet),
+          )
+          if (subsequentNode) {
+            // insert before this first not after the first <style> which is not a style node
+            this._document.insertBefore(stylesheetNode, subsequentNode)
+          } else {
+            // the last node of this document is a <style> - append at the end
+            this._document.appendChild(stylesheetNode)
+          }
+        } else {
+          // prepend at the top of the document
+          this._document.prepend(stylesheetNode)
+        }
+      }
     }
     return this.getStylesheet(stylesheetName)
   }
