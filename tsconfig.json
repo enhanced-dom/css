@@ -3,20 +3,18 @@
     "moduleResolution": "node",
     "module": "esnext",
     "target": "es2018",
-    "baseUrl": "./",
     "declaration": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
+    "rootDir": "./src",
     "outDir": "dist",
     "preserveConstEnums" : true,
+    "noUncheckedIndexedAccess": true,
     "sourceMap": true,
     "sourceRoot": "./",
     "inlineSources": true
   },
   "include": [
     "src/**/*.ts",
-  ],
-  "exclude": [
-    "src/cjs.ts"
   ]
 }

@@ -4,11 +4,11 @@ export interface IStylesheetsRepository {
   getStylesheet(stylesheetName: string, strict?: boolean): CSSStyleSheet | null
   getOrCreateStylesheet(stylesheetName: string): CSSStyleSheet
   createOrUpdateStylesheet(stylesheetName: string, contents: string): void
-  getRule(stylesheetName: string, selector: string, strict?: boolean): CSSStyleRule | null
+  getRule(stylesheetName: string, selector: string, strict?: boolean): CSSStyleRule | undefined
   getOrCreateRule(stylesheetName: string, selector: string): CSSStyleRule
   createOrUpdateRule(stylesheetName: string, selector: string, contents: string): void
   setProperty(stylesheetName: string, selector: string, variableName: string, value: string): void
-  getProperty(stylesheetName: string, selector: string, variableName: string, strict?: boolean): string
+  getProperty(stylesheetName: string, selector: string, variableName: string, strict?: boolean): string | undefined
 }
 
 export class UnknownStylesheetEvent<T extends { emitter: { type: string; id?: string } }> extends CustomEvent<
@@ -67,10 +67,10 @@ export class StylesheetsRepository implements IStylesheetsRepository {
         // <head> does not exist
         const documentNodes = Array.from(this._document.childNodes)
         // find first <style> node which is a direct descendent of the topmost level
-        const firstStylesheet = documentNodes.find((n: HTMLElement) => n.nodeType === n.ELEMENT_NODE && n.tagName.toLowerCase() === 'style')
+        const firstStylesheet = documentNodes.find((n): n is Element => n instanceof Element && n.tagName.toLowerCase() === 'style')
         if (firstStylesheet) {
           const subsequentNode = documentNodes.find(
-            (n: HTMLElement) => n.nodeType !== n.ELEMENT_NODE || n.tagName.toLowerCase() !== 'style',
+            (n) => !(n instanceof Element) || n.tagName.toLowerCase() !== 'style',
             documentNodes.indexOf(firstStylesheet),
           )
           if (subsequentNode) {
@@ -105,7 +105,7 @@ export class StylesheetsRepository implements IStylesheetsRepository {
     stylesheet.ownerNode.innerHTML = newCss
   }
 
-  public getRule(stylesheetName: string, selector: string, strict = true): CSSStyleRule {
+  public getRule(stylesheetName: string, selector: string, strict = true) {
     const stylesheet = this.getStylesheet(stylesheetName, strict)
     if (!stylesheet) {
       return undefined
