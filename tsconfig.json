@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "module": "esnext",
-    "target": "es2018",
+    "target": "es2025",
     "declaration": true,
     "skipLibCheck": true,
     "esModuleInterop": true,

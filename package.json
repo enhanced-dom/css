@@ -1,28 +1,33 @@
 {
   "name": "@enhanced-dom/css",
-  "version": "0.3.1",
+  "version": "0.5.0",
   "description": "Plumbing for interaction with css",
   "keywords": [],
   "repository": "https://github.com/enhanced-dom/css.git",
   "license": "MIT",
+  "type": "module",
   "author": "CD9B4A105290E17E0948E021DF4105107C88693C59C0B891CCC08366C51AEA990902A6A156AC87D88A2FC41422A5E1C3C4071F251F19441C4516000EC25F87DF",
   "main": "index.js",
   "scripts": {
+    "configure-claude": "@enhanced-dom-claude --configs react code agent rtk devcontainer caveman-lite",
+    "configure-lint": "@enhanced-dom-fallow --gitignore && @enhanced-dom-npmrc --gitignore && @enhanced-dom-nvmrc --gitignore && @enhanced-dom-husky --gitignore",
+    "configure-build": "@enhanced-dom-bootstrap-tsconfig",
     "prebuild": "rimraf dist/*",
     "build": "tsc -p ./tsconfig.json",
-    "postbuild": "copyfiles LICENSE.md README.md dist && @enhanced-dom-copy-packagejson",
+    "typecheck": "tsc -p ./tsconfig.json --noEmit",
+    "postbuild": "tsc-esm-fix --tsconfig=./tsconfig.json && copyfiles LICENSE.md README.md dist && @enhanced-dom-copy-packagejson",
     "package": "cd dist && npm pack",
-    "postinstall": "@enhanced-dom-husky",
-    "lint": "eslint src/** --fix --config eslint.config.cjs"
+    "prepare": "npm run configure-lint && npm run configure-claude && npm run configure-build",
+    "lint": "eslint src/** --fix --config eslint.config.mjs"
   },
   "dependencies": {},
   "devDependencies": {
-    "@enhanced-dom/build": "~0.2.0",
-    "@enhanced-dom/lint": "~0.3.0",
-    "typescript": "^5.9.3"
+    "@enhanced-dom/build": "^0.3.1",
+    "@enhanced-dom/lint": "^0.4.0",
+    "@enhanced-dom/claude": "^0.3.0"
   },
   "engines": {
-    "node": ">=20",
-    "npm": ">=10"
+    "node": ">=22.23.2",
+    "npm": ">=12"
   }
 }
